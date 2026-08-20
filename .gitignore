@@ -1,0 +1,25 @@
+# Build intermediates
+*.pdb
+*.obj
+*.suo
+*.user
+obj/
+bin/
+
+# Editors
+.vs/
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Media (never commit test clips or conversion output)
+*.mp4
+*.mkv
+*.mov
+*.webm
+*.avi
+*.wav
+*.mp3
