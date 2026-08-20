@@ -13,9 +13,9 @@ if not exist "%CSC%" (
 "%CSC%" -nologo -optimize+ -target:winexe ^
     -out:"%~dp0video2sound.exe" ^
     -win32icon:"%~dp0assets\video2sound.ico" ^
-    -resource:"%~dp0assets\mark.png",mark.png ^
+    -resource:"%~dp0assets\wordmark.png",wordmark.png ^
     -resource:"%~dp0assets\sticker.png",sticker.png ^
-    -resource:"%~dp0assets\video2sound.ico",app.ico ^
+    -resource:"%~dp0assets\app-window.ico",app.ico ^
     -r:System.dll ^
     -r:System.Core.dll ^
     -r:System.Drawing.dll ^

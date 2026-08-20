@@ -52,8 +52,8 @@ namespace VideoToSound
         private void BuildUi()
         {
             Text = "video2sound";
-            ClientSize = new Size(880, 620);
-            MinimumSize = new Size(780, 560);
+            ClientSize = new Size(880, 642);
+            MinimumSize = new Size(780, 582);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Skin.Ink;
             Font = Skin.Body(8.25F);
@@ -70,7 +70,7 @@ namespace VideoToSound
             Controls.Add(header);
 
             listFrame = new Panel();
-            listFrame.Bounds = new Rectangle(14, 76, 578, 418);
+            listFrame.Bounds = new Rectangle(14, 98, 578, 418);
             listFrame.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             listFrame.BackColor = Skin.Line;
             listFrame.Padding = new Padding(2);
@@ -101,25 +101,25 @@ namespace VideoToSound
             Resize += delegate { PositionEmptyState(); };
             PositionEmptyState();
 
-            btnAdd = MakeButton("Add Files", new Rectangle(14, 504, 108, 30),
+            btnAdd = MakeButton("Add Files", new Rectangle(14, 526, 108, 30),
                                 AnchorStyles.Bottom | AnchorStyles.Left, Skin.Acid);
             btnAdd.Click += delegate { PickFiles(); };
 
-            btnRemove = MakeButton("Remove", new Rectangle(130, 504, 108, 30),
+            btnRemove = MakeButton("Remove", new Rectangle(130, 526, 108, 30),
                                    AnchorStyles.Bottom | AnchorStyles.Left, Skin.Text);
             btnRemove.Click += delegate { RemoveSelected(); };
 
-            btnClear = MakeButton("Clear", new Rectangle(246, 504, 92, 30),
+            btnClear = MakeButton("Clear", new Rectangle(246, 526, 92, 30),
                                   AnchorStyles.Bottom | AnchorStyles.Left, Skin.Text);
             btnClear.Click += delegate { list.Items.Clear(); UpdateHint(); };
 
             progress = new SkateProgress();
-            progress.Bounds = new Rectangle(14, 546, 578, 22);
+            progress.Bounds = new Rectangle(14, 568, 578, 22);
             progress.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             Controls.Add(progress);
 
             status = new Label();
-            status.Bounds = new Rectangle(14, 576, 578, 34);
+            status.Bounds = new Rectangle(14, 598, 578, 34);
             status.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             status.ForeColor = Skin.Dim;
             status.Font = Skin.Body(8.25F);
@@ -129,12 +129,12 @@ namespace VideoToSound
             BuildFormatsBox();
             BuildSaveBox();
 
-            btnConvert = MakeButton("Convert", new Rectangle(606, 498, 168, 40),
+            btnConvert = MakeButton("Convert", new Rectangle(606, 520, 168, 40),
                                     AnchorStyles.Bottom | AnchorStyles.Right, Skin.Acid);
             btnConvert.Font = Skin.Heavy(11F);
             btnConvert.Click += delegate { StartConversion(); };
 
-            btnCancel = MakeButton("Stop", new Rectangle(782, 498, 84, 40),
+            btnCancel = MakeButton("Stop", new Rectangle(782, 520, 84, 40),
                                    AnchorStyles.Bottom | AnchorStyles.Right, Skin.Pink);
             btnCancel.Enabled = false;
             btnCancel.Click += delegate { CancelConversion(); };
@@ -166,7 +166,8 @@ namespace VideoToSound
             try
             {
                 string wordmark = Path.Combine(dir, "logo.png");
-                if (File.Exists(wordmark)) header.Wordmark = Image.FromFile(wordmark);
+                header.Wordmark = File.Exists(wordmark)
+                    ? Image.FromFile(wordmark) : LoadImageResource("wordmark.png");
             }
             catch { }
 
@@ -234,7 +235,7 @@ namespace VideoToSound
             grpFormats = new SkateGroup();
             grpFormats.Title = "Output formats";
             grpFormats.Accent = Skin.Acid;
-            grpFormats.Bounds = new Rectangle(606, 76, 260, 214);
+            grpFormats.Bounds = new Rectangle(606, 98, 260, 214);
             grpFormats.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Controls.Add(grpFormats);
 
@@ -270,7 +271,7 @@ namespace VideoToSound
             grpSave = new SkateGroup();
             grpSave.Title = "Save to";
             grpSave.Accent = Skin.Pink;
-            grpSave.Bounds = new Rectangle(606, 300, 260, 136);
+            grpSave.Bounds = new Rectangle(606, 322, 260, 136);
             grpSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Controls.Add(grpSave);
 

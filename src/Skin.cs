@@ -278,7 +278,7 @@ namespace VideoToSound
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint
                      | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
             BackColor = Skin.Ink;
-            Height = 62;
+            Height = 84;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -294,7 +294,7 @@ namespace VideoToSound
 
             if (Wordmark != null)
             {
-                DrawScaled(g, Wordmark, ref x, 40);
+                DrawScaled(g, Wordmark, ref x, 58);
             }
             else
             {
@@ -311,7 +311,7 @@ namespace VideoToSound
             {
                 Size sz = TextRenderer.MeasureText(g, Tagline, tf);
                 TextRenderer.DrawText(g, Tagline, tf,
-                    new Point(Width - sz.Width - 16, 24), Skin.Acid);
+                    new Point(Width - sz.Width - 16, (Height - 8 - sz.Height) / 2), Skin.Acid);
             }
 
             Rectangle strip = new Rectangle(0, Height - 8, Width, 8);
