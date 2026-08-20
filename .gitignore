@@ -23,3 +23,6 @@ desktop.ini
 *.avi
 *.wav
 *.mp3
+
+# Release staging (contains the 87 MB bundled ffmpeg - never commit)
+dist/

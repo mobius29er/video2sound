@@ -12,13 +12,17 @@ file and writes it to two formats at once:
 
 ## Install
 
-1. Grab `video2sound.exe` from this repo.
-2. Make sure [ffmpeg](https://ffmpeg.org/download.html) is installed and on your
-   `PATH`. (Alternatively, drop `ffmpeg.exe` in the same folder as
-   `video2sound.exe` — it looks there first.)
+**Easiest — download the bundle.** Grab `video2sound-1.0.0-win64.zip` from the
+[latest release](https://github.com/mobius29er/video2sound/releases/latest),
+unzip it anywhere, and run `video2sound.exe`. ffmpeg is included; nothing to
+install and nothing to configure. Keep `ffmpeg.exe` next to `video2sound.exe`.
 
-That's it. No runtime to install: it targets the .NET Framework that ships with
-Windows.
+**Or bring your own ffmpeg.** Download just `video2sound.exe` from this repo and
+make sure [ffmpeg](https://ffmpeg.org/download.html) is on your `PATH`. The
+program checks for `ffmpeg.exe` beside itself first, then falls back to `PATH`.
+
+Either way there is no runtime to install: it targets the .NET Framework that
+ships with Windows.
 
 ## Use
 
@@ -60,4 +64,14 @@ or toolchain to install.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+video2sound is MIT licensed - see [LICENSE](LICENSE).
+
+The release bundle also ships `ffmpeg.exe`, which is separate software under the
+**GNU GPL v3** (this is a `--enable-gpl --enable-version3` build). Its full
+license text is included in the zip as `LICENSE-ffmpeg.txt`. video2sound runs
+ffmpeg as a separate process and is neither derived from it nor linked against
+it, so the two are merely aggregated and this project stays MIT.
+
+Bundled build: ffmpeg 7.1.1-essentials_build from <https://www.gyan.dev/ffmpeg/builds/>.
+FFmpeg source is available from <https://ffmpeg.org/download.html> and
+<https://ffmpeg.org/releases/>.
