@@ -267,7 +267,10 @@ namespace VideoToSound
     /// <summary>Title bar: checkerboard strip plus the wordmark.</summary>
     public class SkateHeader : Panel
     {
-        public Image Logo;
+        /// <summary>Square icon drawn to the left of the drawn wordmark.</summary>
+        public Image Mark;
+        /// <summary>Full logo image. When set it replaces both mark and drawn type.</summary>
+        public Image Wordmark;
         public string Tagline = "RIP THE AUDIO OUT OF ANYTHING";
 
         public SkateHeader()
@@ -286,16 +289,17 @@ namespace VideoToSound
 
             using (SolidBrush b = new SolidBrush(Skin.Ink)) g.FillRectangle(b, ClientRectangle);
 
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             int x = 14;
-            if (Logo != null)
+
+            if (Wordmark != null)
             {
-                int h = 38;
-                int w = (int)(Logo.Width * (h / (double)Logo.Height));
-                g.DrawImage(Logo, new Rectangle(x, 8, w, h));
-                x += w + 12;
+                DrawScaled(g, Wordmark, ref x, 40);
             }
             else
             {
+                if (Mark != null) DrawScaled(g, Mark, ref x, 36);
+
                 Font f = Skin.Display(20F);
                 x = DrawRun(g, "video", f, Skin.Text, x, 6);
                 x = DrawRun(g, "2",     f, Skin.Pink, x, 6);
@@ -312,6 +316,14 @@ namespace VideoToSound
 
             Rectangle strip = new Rectangle(0, Height - 8, Width, 8);
             Skin.DrawCheckerStrip(g, strip, 8, Skin.Acid, Skin.Ink);
+        }
+
+        private void DrawScaled(Graphics g, Image img, ref int x, int targetHeight)
+        {
+            int w = (int)Math.Round(img.Width * (targetHeight / (double)img.Height));
+            int y = (Height - 8 - targetHeight) / 2;
+            g.DrawImage(img, new Rectangle(x, y, w, targetHeight));
+            x += w + 10;
         }
 
         private int DrawRun(Graphics g, string s, Font f, Color c, int x, int y)

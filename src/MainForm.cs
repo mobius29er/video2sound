@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -67,7 +68,7 @@ namespace VideoToSound
             header = new SkateHeader();
             header.Dock = DockStyle.Top;
             Controls.Add(header);
-            TryLoadLogo();
+            LoadBranding();
 
             listFrame = new Panel();
             listFrame.Bounds = new Rectangle(14, 76, 578, 418);
@@ -157,23 +158,56 @@ namespace VideoToSound
             };
         }
 
-        /// <summary>Use the bundled wordmark in the header when one ships beside the exe.</summary>
-        private void TryLoadLogo()
+        /// <summary>
+        /// Branding is embedded in the exe so nothing extra has to ship beside it.
+        /// A mark.png or logo.png dropped next to the exe still wins, which makes
+        /// trying a new logo a file copy rather than a rebuild.
+        /// </summary>
+        private void LoadBranding()
         {
+            string dir = AppDomain.CurrentDomain.BaseDirectory;
+
             try
             {
-                string dir = AppDomain.CurrentDomain.BaseDirectory;
-                string logo = Path.Combine(dir, "logo.png");
-                if (File.Exists(logo)) header.Logo = Image.FromFile(logo);
+                string wordmark = Path.Combine(dir, "logo.png");
+                if (File.Exists(wordmark)) header.Wordmark = Image.FromFile(wordmark);
             }
             catch { }
 
             try
             {
-                string ico = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "video2sound.ico");
-                if (File.Exists(ico)) Icon = new Icon(ico);
+                string mark = Path.Combine(dir, "mark.png");
+                header.Mark = File.Exists(mark) ? Image.FromFile(mark) : LoadImageResource("mark.png");
             }
             catch { }
+
+            try
+            {
+                Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("app.ico");
+                if (s != null) using (s) Icon = new Icon(s);
+            }
+            catch { }
+        }
+
+        private static Image LoadImageResource(string name)
+        {
+            try
+            {
+                Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+                if (s == null) return null;
+                using (s)
+                {
+                    // Image.FromStream needs the stream to outlive the image, so copy
+                    // into a MemoryStream that the Image keeps alive.
+                    MemoryStream ms = new MemoryStream();
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = s.Read(buffer, 0, buffer.Length)) > 0) ms.Write(buffer, 0, read);
+                    ms.Position = 0;
+                    return Image.FromStream(ms);
+                }
+            }
+            catch { return null; }
         }
 
         private SkateButton MakeButton(string text, Rectangle bounds, AnchorStyles anchor, Color accent)
