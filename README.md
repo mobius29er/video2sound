@@ -18,17 +18,28 @@ five formats in one pass.
 
 ## Install
 
-**Download the bundle.** Grab `video2sound-2.0.0-win64.zip` from the
-[latest release](https://github.com/mobius29er/video2sound/releases/latest),
-unzip it anywhere, and run `video2sound.exe`. ffmpeg is included -- nothing to
-install, nothing to configure. Keep `ffmpeg.exe` next to `video2sound.exe`.
+**Installer (recommended).** Download `video2sound-2.0.0-setup.exe` from the
+[latest release](https://github.com/mobius29er/video2sound/releases/latest) and
+run it. Installs per-user so it needs no admin rights, and gives you a Start
+Menu entry, an optional desktop shortcut, a *Convert with video2sound*
+right-click option on video files, and a proper uninstaller in Add/Remove
+Programs.
+
+**Portable ZIP.** Prefer nothing installed? Take
+`video2sound-2.0.0-win64.zip`, unzip it anywhere, run `video2sound.exe`. Keep
+`ffmpeg.exe` beside it.
+
+Both bundle ffmpeg -- nothing else to install, nothing to configure. And there
+is no runtime to install either way: the app targets the .NET Framework that
+ships with Windows.
 
 **Or bring your own ffmpeg.** Take just `video2sound.exe` and make sure
 [ffmpeg](https://ffmpeg.org/download.html) is on your `PATH`. The program looks
 for `ffmpeg.exe` beside itself first, then falls back to `PATH`.
 
-There is no runtime to install either way: it targets the .NET Framework that
-ships with Windows.
+> Windows SmartScreen will warn on first run because the executables are not
+> code-signed. That is expected for an unsigned open-source build -- choose
+> *More info* then *Run anyway*, or build it yourself from source below.
 
 ## Use
 
@@ -73,6 +84,16 @@ Source layout:
 | `src/MainForm.cs` | The window and all UI behaviour |
 | `src/Converter.cs` | Runs ffmpeg, handles cancellation and errors |
 | `src/Formats.cs` | Format/quality definitions, ffmpeg discovery, path handling |
+| `installer/video2sound.iss` | Inno Setup script for the installer |
+
+To build the installer as well, install
+[Inno Setup](https://jrsoftware.org/isinfo.php) (`winget install
+JRSoftware.InnoSetup`), stage the bundle in `distideo2sound-2.0.0-win64\`,
+then run:
+
+```
+ISCC.exe installerideo2sound.iss
+```
 
 See [docs/DESIGN.md](docs/DESIGN.md) for why it is built this way.
 
