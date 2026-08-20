@@ -12,7 +12,7 @@ namespace VideoToSound
     {
         private ListView list;
         private Panel listFrame;
-        private Label hint;
+        private EmptyState hint;
         private SkateHeader header;
         private SkateButton btnAdd, btnRemove, btnClear, btnConvert, btnCancel, btnBrowse;
         private SkateProgress progress;
@@ -68,7 +68,6 @@ namespace VideoToSound
             header = new SkateHeader();
             header.Dock = DockStyle.Top;
             Controls.Add(header);
-            LoadBranding();
 
             listFrame = new Panel();
             listFrame.Bounds = new Rectangle(14, 76, 578, 418);
@@ -96,16 +95,11 @@ namespace VideoToSound
             list.Columns.Add("Status", 270);
             listFrame.Controls.Add(list);
 
-            hint = new Label();
-            hint.Text = "DRAG VIDEO FILES HERE";
-            hint.TextAlign = ContentAlignment.MiddleCenter;
-            hint.ForeColor = Skin.Line;
-            hint.Font = Skin.Heavy(12F);
-            hint.BackColor = Skin.Panel;
-            hint.Bounds = new Rectangle(18, 250, 570, 40);
-            hint.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            hint = new EmptyState();
             Controls.Add(hint);
             hint.BringToFront();
+            Resize += delegate { PositionEmptyState(); };
+            PositionEmptyState();
 
             btnAdd = MakeButton("Add Files", new Rectangle(14, 504, 108, 30),
                                 AnchorStyles.Bottom | AnchorStyles.Left, Skin.Acid);
@@ -145,6 +139,8 @@ namespace VideoToSound
             btnCancel.Enabled = false;
             btnCancel.Click += delegate { CancelConversion(); };
 
+            LoadBranding();
+
             FormClosing += delegate(object s, FormClosingEventArgs e)
             {
                 if (running)
@@ -178,6 +174,14 @@ namespace VideoToSound
             {
                 string mark = Path.Combine(dir, "mark.png");
                 header.Mark = File.Exists(mark) ? Image.FromFile(mark) : LoadImageResource("mark.png");
+            }
+            catch { }
+
+            try
+            {
+                string sticker = Path.Combine(dir, "sticker.png");
+                hint.Sticker = File.Exists(sticker)
+                    ? Image.FromFile(sticker) : LoadImageResource("sticker.png");
             }
             catch { }
 
@@ -447,6 +451,19 @@ namespace VideoToSound
         }
 
         private void UpdateHint() { hint.Visible = list.Items.Count == 0; }
+
+        /// <summary>The empty state is a sibling of the list, so centre it by hand.</summary>
+        private void PositionEmptyState()
+        {
+            if (hint == null || listFrame == null) return;
+            Rectangle r = listFrame.Bounds;
+            int w = Math.Min(300, r.Width - 20);
+            int h = Math.Min(268, r.Height - 20);
+            hint.Bounds = new Rectangle(
+                r.Left + (r.Width - w) / 2,
+                r.Top + (r.Height - h) / 2,
+                Math.Max(0, w), Math.Max(0, h));
+        }
 
         // ------------------------------------------------------ conversion
 

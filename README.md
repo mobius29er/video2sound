@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/sticker.png" alt="video2sound" width="220">
+</p>
+
 # video2sound
 
 Pull the audio out of a video. Drop files in, tick the formats you want, press

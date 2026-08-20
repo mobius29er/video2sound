@@ -14,6 +14,7 @@ if not exist "%CSC%" (
     -out:"%~dp0video2sound.exe" ^
     -win32icon:"%~dp0assets\video2sound.ico" ^
     -resource:"%~dp0assets\mark.png",mark.png ^
+    -resource:"%~dp0assets\sticker.png",sticker.png ^
     -resource:"%~dp0assets\video2sound.ico",app.ico ^
     -r:System.dll ^
     -r:System.Core.dll ^

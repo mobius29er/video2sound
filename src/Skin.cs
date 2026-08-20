@@ -381,4 +381,44 @@ namespace VideoToSound
             }
         }
     }
+
+    /// <summary>Sticker + caption shown over the file list while it is empty.</summary>
+    public class EmptyState : Control
+    {
+        public Image Sticker;
+        public string Caption = "DRAG VIDEO FILES HERE";
+
+        public EmptyState()
+        {
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint
+                     | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            BackColor = Skin.Panel;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            using (SolidBrush b = new SolidBrush(Skin.Panel)) g.FillRectangle(b, ClientRectangle);
+
+            int captionHeight = 26;
+            int y = 0;
+
+            if (Sticker != null)
+            {
+                int h = Math.Max(0, Math.Min(Sticker.Height, Height - captionHeight - 12));
+                if (h > 0)
+                {
+                    int w = (int)Math.Round(Sticker.Width * (h / (double)Sticker.Height));
+                    g.DrawImage(Sticker, new Rectangle((Width - w) / 2, 0, w, h));
+                    y = h + 12;
+                }
+            }
+
+            using (Font f = Skin.Heavy(9.5F))
+                TextRenderer.DrawText(g, Caption, f,
+                    new Rectangle(0, y, Width, captionHeight), Skin.Line,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.Top | TextFormatFlags.SingleLine);
+        }
+    }
 }
