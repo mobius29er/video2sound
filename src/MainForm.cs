@@ -10,17 +10,21 @@ namespace VideoToSound
     public class MainForm : Form
     {
         private ListView list;
+        private Panel listFrame;
         private Label hint;
-        private Button btnAdd, btnRemove, btnClear, btnConvert, btnCancel, btnBrowse;
-        private ProgressBar progress;
+        private SkateHeader header;
+        private SkateButton btnAdd, btnRemove, btnClear, btnConvert, btnCancel, btnBrowse;
+        private SkateProgress progress;
         private Label status;
-        private GroupBox grpFormats, grpSave;
-        private RadioButton rdoSameFolder, rdoCustomFolder;
+        private SkateGroup grpFormats, grpSave;
+        private SkateRadio rdoSameFolder, rdoCustomFolder;
         private TextBox txtOutFolder;
 
         private FormatSpec[] specs;
-        private CheckBox[] formatChecks;
+        private SkateChip[] formatChecks;
         private ComboBox[] formatQualities;
+
+        private Font fRow, fRowBold, fHead;
 
         private readonly Converter converter = new Converter();
         private Thread worker;
@@ -34,8 +38,8 @@ namespace VideoToSound
             ffmpegPath = Ffmpeg.Locate();
             if (ffmpegPath == null)
             {
-                status.Text = "ffmpeg was not found. Put ffmpeg.exe beside this program, or install it on your PATH.";
-                status.ForeColor = Color.Firebrick;
+                status.Text = "ffmpeg not found. Put ffmpeg.exe beside this program, or install it on your PATH.";
+                status.ForeColor = Skin.Danger;
                 btnConvert.Enabled = false;
             }
 
@@ -47,75 +51,96 @@ namespace VideoToSound
         private void BuildUi()
         {
             Text = "video2sound";
-            ClientSize = new Size(880, 580);
-            MinimumSize = new Size(760, 520);
+            ClientSize = new Size(880, 620);
+            MinimumSize = new Size(780, 560);
             StartPosition = FormStartPosition.CenterScreen;
-            Font = new Font("Segoe UI", 9F);
-            BackColor = SystemColors.Control;
+            BackColor = Skin.Ink;
+            Font = Skin.Body(8.25F);
             AllowDrop = true;
             DragEnter += OnDragEnter;
             DragDrop += OnDragDrop;
 
+            fRow     = Skin.Body(8.25F);
+            fRowBold = Skin.BodyBold(8.25F);
+            fHead    = Skin.Heavy(7.5F);
+
+            header = new SkateHeader();
+            header.Dock = DockStyle.Top;
+            Controls.Add(header);
+            TryLoadLogo();
+
+            listFrame = new Panel();
+            listFrame.Bounds = new Rectangle(14, 76, 578, 418);
+            listFrame.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            listFrame.BackColor = Skin.Line;
+            listFrame.Padding = new Padding(2);
+            Controls.Add(listFrame);
+
             list = new ListView();
-            list.Bounds = new Rectangle(12, 12, 580, 448);
-            list.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            list.Dock = DockStyle.Fill;
             list.View = View.Details;
             list.FullRowSelect = true;
-            list.GridLines = false;
             list.HideSelection = false;
             list.AllowDrop = true;
-            list.BackColor = Color.White;
+            list.BorderStyle = BorderStyle.None;
+            list.BackColor = Skin.Panel;
+            list.ForeColor = Skin.Text;
+            list.OwnerDraw = true;
+            list.DrawColumnHeader += ListDrawHeader;
+            list.DrawSubItem += ListDrawSubItem;
+            list.DrawItem += delegate(object s, DrawListViewItemEventArgs e) { e.DrawDefault = false; };
             list.DragEnter += OnDragEnter;
             list.DragDrop += OnDragDrop;
             list.Columns.Add("File", 300);
-            list.Columns.Add("Status", 262);
-            Controls.Add(list);
+            list.Columns.Add("Status", 270);
+            listFrame.Controls.Add(list);
 
             hint = new Label();
-            hint.Text = "Drag video files here";
+            hint.Text = "DRAG VIDEO FILES HERE";
             hint.TextAlign = ContentAlignment.MiddleCenter;
-            hint.ForeColor = Color.FromArgb(140, 140, 140);
-            hint.Font = new Font("Segoe UI", 11F);
-            hint.BackColor = Color.White;
-            hint.Bounds = new Rectangle(14, 190, 576, 40);
+            hint.ForeColor = Skin.Line;
+            hint.Font = Skin.Heavy(12F);
+            hint.BackColor = Skin.Panel;
+            hint.Bounds = new Rectangle(18, 250, 570, 40);
             hint.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             Controls.Add(hint);
             hint.BringToFront();
 
-            btnAdd = MakeButton("Add Files…", new Rectangle(12, 468, 100, 28),
-                                AnchorStyles.Bottom | AnchorStyles.Left);
+            btnAdd = MakeButton("Add Files", new Rectangle(14, 504, 108, 30),
+                                AnchorStyles.Bottom | AnchorStyles.Left, Skin.Acid);
             btnAdd.Click += delegate { PickFiles(); };
 
-            btnRemove = MakeButton("Remove Selected", new Rectangle(120, 468, 130, 28),
-                                   AnchorStyles.Bottom | AnchorStyles.Left);
+            btnRemove = MakeButton("Remove", new Rectangle(130, 504, 108, 30),
+                                   AnchorStyles.Bottom | AnchorStyles.Left, Skin.Text);
             btnRemove.Click += delegate { RemoveSelected(); };
 
-            btnClear = MakeButton("Clear", new Rectangle(258, 468, 74, 28),
-                                  AnchorStyles.Bottom | AnchorStyles.Left);
+            btnClear = MakeButton("Clear", new Rectangle(246, 504, 92, 30),
+                                  AnchorStyles.Bottom | AnchorStyles.Left, Skin.Text);
             btnClear.Click += delegate { list.Items.Clear(); UpdateHint(); };
 
-            progress = new ProgressBar();
-            progress.Bounds = new Rectangle(12, 508, 580, 18);
+            progress = new SkateProgress();
+            progress.Bounds = new Rectangle(14, 546, 578, 22);
             progress.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             Controls.Add(progress);
 
             status = new Label();
-            status.Bounds = new Rectangle(12, 532, 580, 36);
+            status.Bounds = new Rectangle(14, 576, 578, 34);
             status.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            status.ForeColor = Color.FromArgb(90, 90, 90);
-            status.Text = "Add files, tick the formats you want, then press Convert.";
+            status.ForeColor = Skin.Dim;
+            status.Font = Skin.Body(8.25F);
+            status.Text = "Add files, flip on the formats you want, then hit CONVERT.";
             Controls.Add(status);
 
             BuildFormatsBox();
             BuildSaveBox();
 
-            btnConvert = MakeButton("Convert", new Rectangle(604, 464, 172, 36),
-                                    AnchorStyles.Bottom | AnchorStyles.Right);
-            btnConvert.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnConvert = MakeButton("Convert", new Rectangle(606, 498, 168, 40),
+                                    AnchorStyles.Bottom | AnchorStyles.Right, Skin.Acid);
+            btnConvert.Font = Skin.Heavy(11F);
             btnConvert.Click += delegate { StartConversion(); };
 
-            btnCancel = MakeButton("Cancel", new Rectangle(784, 464, 84, 36),
-                                   AnchorStyles.Bottom | AnchorStyles.Right);
+            btnCancel = MakeButton("Stop", new Rectangle(782, 498, 84, 40),
+                                   AnchorStyles.Bottom | AnchorStyles.Right, Skin.Pink);
             btnCancel.Enabled = false;
             btnCancel.Click += delegate { CancelConversion(); };
 
@@ -132,13 +157,32 @@ namespace VideoToSound
             };
         }
 
-        private Button MakeButton(string text, Rectangle bounds, AnchorStyles anchor)
+        /// <summary>Use the bundled wordmark in the header when one ships beside the exe.</summary>
+        private void TryLoadLogo()
         {
-            Button b = new Button();
+            try
+            {
+                string dir = AppDomain.CurrentDomain.BaseDirectory;
+                string logo = Path.Combine(dir, "logo.png");
+                if (File.Exists(logo)) header.Logo = Image.FromFile(logo);
+            }
+            catch { }
+
+            try
+            {
+                string ico = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "video2sound.ico");
+                if (File.Exists(ico)) Icon = new Icon(ico);
+            }
+            catch { }
+        }
+
+        private SkateButton MakeButton(string text, Rectangle bounds, AnchorStyles anchor, Color accent)
+        {
+            SkateButton b = new SkateButton();
             b.Text = text;
             b.Bounds = bounds;
             b.Anchor = anchor;
-            b.UseVisualStyleBackColor = true;
+            b.Accent = accent;
             Controls.Add(b);
             return b;
         }
@@ -146,12 +190,13 @@ namespace VideoToSound
         private void BuildFormatsBox()
         {
             specs = FormatSpec.All();
-            formatChecks = new CheckBox[specs.Length];
+            formatChecks = new SkateChip[specs.Length];
             formatQualities = new ComboBox[specs.Length];
 
-            grpFormats = new GroupBox();
-            grpFormats.Text = "Output formats";
-            grpFormats.Bounds = new Rectangle(604, 12, 264, 200);
+            grpFormats = new SkateGroup();
+            grpFormats.Title = "Output formats";
+            grpFormats.Accent = Skin.Acid;
+            grpFormats.Bounds = new Rectangle(606, 76, 260, 214);
             grpFormats.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Controls.Add(grpFormats);
 
@@ -159,59 +204,112 @@ namespace VideoToSound
             {
                 FormatSpec spec = specs[i];
 
-                CheckBox chk = new CheckBox();
-                chk.Text = spec.Label;
-                chk.Bounds = new Rectangle(14, 26 + i * 32, 74, 22);
-                chk.Checked = spec.CheckedByDefault;
-                grpFormats.Controls.Add(chk);
-                formatChecks[i] = chk;
+                SkateChip chip = new SkateChip();
+                chip.Text = spec.Label;
+                chip.Bounds = new Rectangle(12, 34 + i * 34, 76, 28);
+                chip.Checked = spec.CheckedByDefault;
+                grpFormats.Controls.Add(chip);
+                formatChecks[i] = chip;
 
-                ComboBox cmb = new ComboBox();
-                cmb.Bounds = new Rectangle(94, 24 + i * 32, 156, 22);
-                cmb.DropDownStyle = ComboBoxStyle.DropDownList;
+                SkateCombo cmb = new SkateCombo();
+                cmb.Bounds = new Rectangle(96, 35 + i * 34, 150, 26);
+                cmb.Font = Skin.Body(8.25F);
+                cmb.DrawItem += ComboDrawItem;
                 cmb.Items.AddRange(spec.Qualities);
                 cmb.SelectedIndex = spec.DefaultQualityIndex;
-                cmb.Enabled = chk.Checked;
+                cmb.Enabled = chip.Checked;
                 grpFormats.Controls.Add(cmb);
                 formatQualities[i] = cmb;
 
-                ComboBox captured = cmb;
-                CheckBox capturedChk = chk;
-                chk.CheckedChanged += delegate { captured.Enabled = capturedChk.Checked; };
+                SkateCombo capturedCmb = cmb;
+                SkateChip capturedChip = chip;
+                chip.CheckedChanged += delegate { capturedCmb.Enabled = capturedChip.Checked; };
             }
         }
 
         private void BuildSaveBox()
         {
-            grpSave = new GroupBox();
-            grpSave.Text = "Save to";
-            grpSave.Bounds = new Rectangle(604, 222, 264, 130);
+            grpSave = new SkateGroup();
+            grpSave.Title = "Save to";
+            grpSave.Accent = Skin.Pink;
+            grpSave.Bounds = new Rectangle(606, 300, 260, 136);
             grpSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Controls.Add(grpSave);
 
-            rdoSameFolder = new RadioButton();
+            rdoSameFolder = new SkateRadio();
             rdoSameFolder.Text = "Same folder as the video";
-            rdoSameFolder.Bounds = new Rectangle(14, 24, 236, 22);
+            rdoSameFolder.Bounds = new Rectangle(12, 34, 236, 30);
             rdoSameFolder.Checked = true;
             grpSave.Controls.Add(rdoSameFolder);
 
-            rdoCustomFolder = new RadioButton();
+            rdoCustomFolder = new SkateRadio();
             rdoCustomFolder.Text = "This folder:";
-            rdoCustomFolder.Bounds = new Rectangle(14, 50, 236, 22);
+            rdoCustomFolder.Bounds = new Rectangle(12, 68, 236, 30);
             grpSave.Controls.Add(rdoCustomFolder);
 
             txtOutFolder = new TextBox();
-            txtOutFolder.Bounds = new Rectangle(14, 76, 180, 22);
+            txtOutFolder.Bounds = new Rectangle(12, 104, 170, 24);
             txtOutFolder.ReadOnly = true;
-            txtOutFolder.BackColor = Color.White;
+            txtOutFolder.BorderStyle = BorderStyle.FixedSingle;
+            txtOutFolder.BackColor = Skin.Ink;
+            txtOutFolder.ForeColor = Skin.Text;
+            txtOutFolder.Font = Skin.Body(8F);
             grpSave.Controls.Add(txtOutFolder);
 
-            btnBrowse = new Button();
+            btnBrowse = new SkateButton();
             btnBrowse.Text = "…";
-            btnBrowse.Bounds = new Rectangle(200, 75, 50, 24);
-            btnBrowse.UseVisualStyleBackColor = true;
+            btnBrowse.Accent = Skin.Pink;
+            btnBrowse.Bounds = new Rectangle(188, 103, 58, 26);
             btnBrowse.Click += delegate { PickFolder(); };
             grpSave.Controls.Add(btnBrowse);
+        }
+
+        // -------------------------------------------------------- custom draw
+
+        private void ListDrawHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            using (SolidBrush b = new SolidBrush(Skin.Raised)) e.Graphics.FillRectangle(b, e.Bounds);
+            using (Pen p = new Pen(Skin.Acid, 2f))
+                e.Graphics.DrawLine(p, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
+
+            Rectangle r = e.Bounds; r.X += 8;
+            TextRenderer.DrawText(e.Graphics, e.Header.Text.ToUpperInvariant(), fHead, r, Skin.Acid,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+        }
+
+        private void ListDrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        {
+            bool selected = e.Item.Selected;
+            Color bg = selected ? Skin.Raised : Skin.Panel;
+            using (SolidBrush b = new SolidBrush(bg)) e.Graphics.FillRectangle(b, e.Bounds);
+
+            if (selected && e.ColumnIndex == 0)
+            {
+                using (SolidBrush b = new SolidBrush(Skin.Pink))
+                    e.Graphics.FillRectangle(b, new Rectangle(e.Bounds.Left, e.Bounds.Top, 3, e.Bounds.Height));
+            }
+
+            Rectangle r = e.Bounds; r.X += 8; r.Width -= 10;
+            TextRenderer.DrawText(e.Graphics, e.SubItem.Text,
+                e.ColumnIndex == 0 ? fRowBold : fRow, r, e.Item.ForeColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+                | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+        }
+
+        private void ComboDrawItem(object sender, DrawItemEventArgs e)
+        {
+            ComboBox cmb = (ComboBox)sender;
+            if (e.Index < 0) return;
+
+            bool selected = (e.State & DrawItemState.Selected) != 0;
+            Color bg = selected ? Skin.Acid : Skin.Ink;
+            Color fg = selected ? Skin.Ink : Skin.Text;
+            if (!cmb.Enabled) fg = Skin.Dim;
+
+            using (SolidBrush b = new SolidBrush(bg)) e.Graphics.FillRectangle(b, e.Bounds);
+            Rectangle r = e.Bounds; r.X += 6;
+            TextRenderer.DrawText(e.Graphics, cmb.Items[e.Index].ToString(), cmb.Font, r, fg,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
         }
 
         // ----------------------------------------------------------- input
@@ -268,9 +366,7 @@ namespace VideoToSound
                     try
                     {
                         foreach (string f in Directory.GetFiles(raw))
-                        {
                             if (AddOne(f)) added++;
-                        }
                     }
                     catch { skipped++; }
                     continue;
@@ -283,7 +379,7 @@ namespace VideoToSound
             UpdateHint();
             if (added > 0)
             {
-                status.ForeColor = Color.FromArgb(90, 90, 90);
+                status.ForeColor = Skin.Dim;
                 status.Text = list.Items.Count + " file(s) queued."
                             + (skipped > 0 ? "  " + skipped + " skipped." : "");
             }
@@ -303,6 +399,7 @@ namespace VideoToSound
 
             ListViewItem item = new ListViewItem(Path.GetFileName(full));
             item.Tag = full;
+            item.ForeColor = Skin.Text;
             item.SubItems.Add("Queued");
             list.Items.Add(item);
             return true;
@@ -315,10 +412,7 @@ namespace VideoToSound
             UpdateHint();
         }
 
-        private void UpdateHint()
-        {
-            hint.Visible = list.Items.Count == 0;
-        }
+        private void UpdateHint() { hint.Visible = list.Items.Count == 0; }
 
         // ------------------------------------------------------ conversion
 
@@ -332,21 +426,13 @@ namespace VideoToSound
 
         private void StartConversion()
         {
-            if (list.Items.Count == 0)
-            {
-                Warn("Add some files first.");
-                return;
-            }
+            if (list.Items.Count == 0) { Warn("Add some files first."); return; }
 
             List<int> chosen = new List<int>();
             for (int i = 0; i < formatChecks.Length; i++)
                 if (formatChecks[i].Checked) chosen.Add(i);
 
-            if (chosen.Count == 0)
-            {
-                Warn("Tick at least one output format.");
-                return;
-            }
+            if (chosen.Count == 0) { Warn("Flip on at least one output format."); return; }
 
             string customFolder = null;
             if (rdoCustomFolder.Checked)
@@ -377,11 +463,10 @@ namespace VideoToSound
                     tasks.Add(t);
                 }
                 list.Items[i].SubItems[1].Text = "Queued";
-                list.Items[i].ForeColor = SystemColors.WindowText;
+                list.Items[i].ForeColor = Skin.Text;
             }
 
             SetRunning(true);
-            progress.Minimum = 0;
             progress.Maximum = tasks.Count;
             progress.Value = 0;
             converter.Reset();
@@ -396,7 +481,6 @@ namespace VideoToSound
         {
             int done = 0, failed = 0, completed = 0;
             HashSet<string> outputFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            Dictionary<int, int> perItemFailures = new Dictionary<int, int>();
             bool redirected = false;
 
             foreach (Task t in tasks)
@@ -409,7 +493,7 @@ namespace VideoToSound
                 if (outDir == null)
                 {
                     failed++;
-                    Bump(ref completed, tasks.Count);
+                    Bump(ref completed);
                     SetItemStatus(t.ItemIndex, "Failed: nowhere writable to save", true);
                     continue;
                 }
@@ -423,7 +507,7 @@ namespace VideoToSound
                 string outPath = Converter.BuildOutputPath(t.Input, outDir, t.Spec.Extension);
                 ConversionResult r = converter.Run(ffmpeg, t.Input, outPath, t.Quality);
 
-                Bump(ref completed, tasks.Count);
+                Bump(ref completed);
 
                 if (r.Success)
                 {
@@ -433,8 +517,6 @@ namespace VideoToSound
                 else if (!converter.Cancelled)
                 {
                     failed++;
-                    if (!perItemFailures.ContainsKey(t.ItemIndex)) perItemFailures[t.ItemIndex] = 0;
-                    perItemFailures[t.ItemIndex]++;
                     SetItemStatus(t.ItemIndex, t.Spec.Label + " failed: " + Shorten(r.Error), true);
                 }
             }
@@ -455,8 +537,8 @@ namespace VideoToSound
 
             if (converter.Cancelled)
             {
-                status.ForeColor = Color.Firebrick;
-                status.Text = "Cancelled. " + done + " file(s) had already been written.";
+                status.ForeColor = Skin.Pink;
+                status.Text = "Stopped. " + done + " file(s) had already been written.";
                 progress.Value = 0;
                 return;
             }
@@ -465,17 +547,15 @@ namespace VideoToSound
             if (failed > 0) msg += ", " + failed + " failed";
             msg += ".";
             if (redirected)
-                msg += "  The source folder was read-only, so those went to your Downloads folder instead.";
+                msg += "  Source folder was read-only, so those went to your Downloads folder instead.";
 
-            status.ForeColor = failed > 0 ? Color.Firebrick : Color.FromArgb(20, 110, 40);
+            status.ForeColor = failed > 0 ? Skin.Danger : Skin.Acid;
             status.Text = msg;
 
             if (done > 0 && folders.Count == 1)
             {
-                DialogResult r = MessageBox.Show(this,
-                    msg + "\n\nOpen the output folder?",
-                    "video2sound",
-                    MessageBoxButtons.YesNo,
+                DialogResult r = MessageBox.Show(this, msg + "\n\nOpen the output folder?",
+                    "video2sound", MessageBoxButtons.YesNo,
                     failed > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
                 if (r == DialogResult.Yes)
                 {
@@ -494,8 +574,8 @@ namespace VideoToSound
         {
             if (!running) return;
             btnCancel.Enabled = false;
-            status.ForeColor = Color.Firebrick;
-            status.Text = "Cancelling…";
+            status.ForeColor = Skin.Pink;
+            status.Text = "Stopping…";
             converter.Cancel();
         }
 
@@ -521,7 +601,7 @@ namespace VideoToSound
                 if (index < 0 || index >= list.Items.Count) return;
                 ListViewItem item = list.Items[index];
                 item.SubItems[1].Text = text;
-                item.ForeColor = isError ? Color.Firebrick : SystemColors.WindowText;
+                item.ForeColor = isError ? Skin.Danger : Skin.Text;
             });
         }
 
@@ -529,19 +609,16 @@ namespace VideoToSound
         {
             BeginInvoke((MethodInvoker)delegate
             {
-                status.ForeColor = Color.FromArgb(90, 90, 90);
+                status.ForeColor = Skin.Dim;
                 status.Text = text;
             });
         }
 
-        private void Bump(ref int completed, int total)
+        private void Bump(ref int completed)
         {
             completed++;
             int value = completed;
-            BeginInvoke((MethodInvoker)delegate
-            {
-                progress.Value = Math.Min(value, progress.Maximum);
-            });
+            BeginInvoke((MethodInvoker)delegate { progress.Value = value; });
         }
 
         private void Warn(string message)

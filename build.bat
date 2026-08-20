@@ -19,7 +19,8 @@ if not exist "%CSC%" (
     "%~dp0src\Program.cs" ^
     "%~dp0src\MainForm.cs" ^
     "%~dp0src\Converter.cs" ^
-    "%~dp0src\Formats.cs"
+    "%~dp0src\Formats.cs" ^
+    "%~dp0src\Skin.cs"
 
 if errorlevel 1 (
     echo BUILD FAILED
